@@ -702,12 +702,11 @@ ggplot(d5[d5$uf %in% names(var_uf[22:27]),],
 dev.off()
 
 xx = d5[d5$uf %in% names(var_uf[22:27]),]
-xx = xx[2:4]
 xx = reshape(xx, idvar = 'uf',timevar = 'ano', direction = 'wide')
 
 xx = cbind('Taxa de Homicídio por AF por 100 mil habitantes',xx)
 
-colnames(xx) = c('uf','variável',as.character(2002:2012))
+colnames(xx) = c('variável','uf',as.character(2002:2012))
 
 write_excel_csv(xx,'tabelas/meta161_indicador7_maior_homicidio_af_2007_2017.csv')
 
@@ -828,3 +827,9 @@ write_excel_csv(tab_uf,'tabelas/meta161_indicador8_cres_acumulado_razao_hom_jove
 ##########################################################################
 
 # sem dados disponíveis
+
+##########################################################################
+##                                                                      ##    
+##                    Número de Óbitos de Policiais                     ##
+##                                                                      ##          
+##########################################################################
