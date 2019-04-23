@@ -587,6 +587,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
 # Ajustando Erros
 var_uf[var_uf == Inf] <- NA
 
+## Gráficos e Tabelas
 png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_instituicao_2007_2016.png')
 
 ggplot(var_uf,
@@ -623,6 +624,6 @@ write_excel_csv(ag_uf,'tabelas/meta161_indicador6_uf_cresc_acumulado_crimes_patr
 
 ##########################################################################
 ##                                                                      ##    
-##        Taxa de crimes violentos não letais contra o patrimônio       ##
+##                      Mortes por Arma de Fogo                         ##
 ##                                                                      ##          
 ##########################################################################
