@@ -17,6 +17,7 @@ library(tidyr)
 library(tidyverse)
 library(ggplot2)
 library(ggthemes)
+library(reshape2)
 
 # Movendo para diretório de arquivos
 setwd('source')
@@ -467,3 +468,161 @@ tab_uf = var_uf
 
 colnames(tab_uf) = c('UF', 'Crescimento Acumulado (%) Crimes Sexuais (2009 à 2017)')
 write_excel_csv(tab_uf,'tabelas/meta161_indicador4_cres_acumulado_crimes_sexuais_2007_2017.csv')
+
+##########################################################################
+##                                                                      ##    
+##              Taxa de crimes intencionais não letais                  ##
+##                                                                      ##          
+##########################################################################
+
+# faltam dados
+
+##########################################################################
+##                                                                      ##    
+##        Taxa de crimes violentos não letais contra o patrimônio       ##
+##                                                                      ##          
+##########################################################################
+
+# Carregando dados
+## Valores Absolutos
+d41 = read.csv('dados/indicador_6/crimes_patrimoniais_n_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d41) = c('medida','variavel','uf','ano','valor')
+
+ag_uf = data.frame(uf = levels(d41$uf),
+                   veiculo = with(d41[d41$variavel %in% c('Furto de veículo',
+                                                          'Roubo de veículo',
+                                                          'Roubo e furto de veículos'),],{
+                     tapply(valor, uf, sum, na.rm = T)
+                   }),
+                   carga = with(d41[d41$variavel == 'Roubo de carga',],{
+                     tapply(valor, uf, sum, na.rm = T)
+                   }),
+                   outros = with(d41[d41$variavel == 'Roubo (outros)',],{
+                     tapply(valor, uf, sum, na.rm = T)
+                   }))
+
+ag_uf = melt(ag_uf, id.var = 'uf')
+
+## Gráficos e Tabelas
+png('graficos/meta161_indicador6_uf_total_crimes_patrimoniais_2007_2016.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -value), y = value)) +
+  labs(y = 'Crimes Patrimoniais total', x = 'UF') +   
+  geom_bar(aes(fill = variable), stat="identity") + 
+  lege(labels = c("Veículo", "Carga",'Outros')) +
+  tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Crimes Patrimoniais (2007 à 2016)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador6_uf_total_crimes_patrimoniais_2007_2016.csv')
+
+ag_uf = data.frame(uf = levels(d41$uf),
+                   instituicao = with(d41[d41$variavel == 'Roubo a instituição financeira',],
+                                      {tapply(valor, uf, sum, na.rm = T)}))
+
+png('graficos/meta161_indicador6_uf_total_roubo_instituicao_2007_2016.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -instituicao), y = instituicao)) +
+  labs(y = 'Roubo a Instituição Financeira total', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Roubo a Instituição Financeira (2007 à 2016)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador6_uf_total_roubo_instituicao_2007_2016.csv')
+
+## Valores Relativos
+d42 = read.csv('dados/indicador_6/crimes_patrimoniais_instituicao_financeira_taxa_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d42) = c('m1','var1','uf','ano','v1')
+
+d43 = read.csv('dados/indicador_6/crimes_patrimoniais_pessoa_taxa_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d43) = c('m2','var2','uf','ano','v2')
+
+d44 = read.csv('dados/indicador_6/crimes_patrimoniais_veiculos_taxa_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d44) = c('m3','var3','uf','ano','v3')
+
+## Concatenando dados relativos
+d4 = merge(d42,d43, by = c('ano','uf'))
+d4 = merge(d4,d44, by = c('ano','uf'))
+
+## Crimes Sexuais taxa
+var_uf = d4 %>% group_by(uf) %>%
+  mutate(lag.instituicao = dplyr::lag(v1, n = 1, default = NA)) %>%
+  mutate(lag.pessoa = dplyr::lag(v2, n = 1, default = NA)) %>%
+  mutate(lag.veiculo = dplyr::lag(v3, n = 1, default = NA))
+
+var_uf$cresc.inst = with(var_uf,{
+  (v1 - lag.instituicao) / lag.instituicao
+}) 
+
+var_uf$cresc.pessoa = with(var_uf,{
+  (v2 - lag.pessoa) / lag.pessoa
+}) 
+
+var_uf$cresc.veiculo = with(var_uf,{
+  (v3 - lag.veiculo) / lag.veiculo
+}) 
+
+### Crescimento Acumulado Crimes Sexuais por UF
+var_uf = data.frame(uf = levels(var_uf$uf),
+                    ca.inst = tapply(var_uf$cresc.inst, 
+                                        var_uf$uf, sum, na.rm = T),
+                    ca.pessoa = tapply(var_uf$cresc.pessoa, 
+                                     var_uf$uf, sum, na.rm = T),
+                    ca.veiculo = tapply(var_uf$cresc.veiculo, 
+                                        var_uf$uf, sum, na.rm = T))
+
+
+# Ajustando Erros
+var_uf[var_uf == Inf] <- NA
+
+png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_instituicao_2007_2016.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -ca.inst), y = ca.inst)) +
+  labs(y = 'Crescimento Acumulado (%) Roubo a Instituição Financeira', x = 'UF') +   
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+png('graficos/meta161_indicador6_uf_crescimento_acumulado_outros_roubos_2007_2016.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -ca.pessoa), y = ca.pessoa)) +
+  labs(y = 'Crescimento Acumulado (%) Outros Roubos', x = 'UF') +   
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_veiculo_2007_2016.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -ca.veiculo), y = ca.veiculo)) +
+  labs(y = 'Crescimento Acumulado (%) Roubo ou Furto de Veículo', x = 'UF') +   
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(var_uf) = c('UF', 
+                     'Crescimento Acumulado (%) Roubo a Instituição Financeira (2007 à 2016)',
+                     'Crescimento Acumulado (%) Outros Roubos (2007 à 2016)',
+                     'Crescimento Acumulado (%) Roubo ou Furto e Veículos (2007 à 2016)')
+
+write_excel_csv(ag_uf,'tabelas/meta161_indicador6_uf_cresc_acumulado_crimes_patrimoniais_2007_2016.csv')
+
+##########################################################################
+##                                                                      ##    
+##        Taxa de crimes violentos não letais contra o patrimônio       ##
+##                                                                      ##          
+##########################################################################
