@@ -1000,6 +1000,8 @@ ag_uf = data.frame(uf = levels(d8_uf$uf),
                    hom_2012 = d8_uf$af_jovem[d8_uf$ano == 2012],
                    hom_2002 = d8_uf$af_jovem[d8_uf$ano == 2002])
 
+ag_uf$ratio = ag_uf$hom_2012 - ag_uf$hom_2002
+
 ag_uf = melt(ag_uf,id.vars = 'uf')
 
 png('graficos/meta161_indicador14_uf_taxa_homicidio_jovem_af_2002_2012.png')
@@ -1008,10 +1010,70 @@ ggplot(ag_uf,
        aes(x = reorder(uf, - value), y = value)) +
   labs(y = 'Média Homicídio por AF (Jovem)', x = 'UF') +   
   geom_bar(aes(fill = variable), stat="identity") + 
-  scale_fill_discrete(labels = c("2012",'2002')) +
+  scale_fill_discrete(labels = c("2012",'2002','Diferença')) +
   tema_massa()
 
 dev.off()
 
-colnames(ag_uf) = c('UF', 'Total de Homicídio por AF (Jovem) em 10 anos (2002 e 2012)')
-write_excel_csv(ag_uf,'tabelas/meta161_indicador14_uf_total_homicidio_jovem_af_2002_2012.csv')
+colnames(ag_uf) = c('UF', 'Taxa de Homicídio por AF (Jovem) por 100 mil hab. (2002 e 2012)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador14_uf_taxa_homicidio_jovem_af_2002_2012.csv')
+
+##########################################################################
+##                                                                      ##    
+##        Crescimento das Taxas de Óbito por AF na população jovem      ##
+##                                                                      ##          
+##########################################################################
+
+# parece já ter sido trabalhado no indicador 14
+
+##########################################################################
+##                                                                      ##    
+##              Taxas de Óbito por AF na população jovem                ##
+##                                                                      ##          
+##########################################################################
+
+# parece já ter sido trabalhado no indicador 14
+
+##########################################################################
+##                                                                      ##    
+##            Taxas de Óbito por AF na população Branca/Negra           ##
+##                                                                      ##          
+##########################################################################
+
+# Carregando dados
+d9 = read.csv('dados/indicador_17/taxa_homicidio_cor_2003_2012_fbsp.csv',
+              sep = ';', fileEncoding = 'Latin1')
+
+# Gráficos e tabelas
+ag_uf = data.frame(uf = levels(d9$uf),
+                   hom_branco = tapply(d9$hom_brancos,d9$uf, mean, na.rm = T),
+                   hom_negro = tapply(d9$hom_negros,d9$uf, mean, na.rm = T))
+
+ag_uf$ratio = ag_uf$hom_negro - ag_uf$hom_branco 
+
+ag_uf = melt(ag_uf,id.vars = 'uf')
+
+png('graficos/meta161_indicador17_uf_taxa_homicidio_cor_af_2003_2012_ver1.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, - value), y = value)) +
+  labs(y = 'Média Homicídio por AF', x = 'UF') +   
+  geom_bar(aes(fill = variable), position = 'dodge', stat="identity") + 
+  scale_fill_discrete(labels = c("Brancos",'Negros','Diferença')) +
+  tema_massa()
+
+dev.off()
+
+png('graficos/meta161_indicador17_uf_taxa_homicidio_cor_af_2003_2012_ver2.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, - value), y = value)) +
+  labs(y = 'Média Homicídio por AF', x = 'UF') +   
+  geom_bar(aes(fill = variable), stat="identity") + 
+  scale_fill_discrete(labels = c("Brancos",'Negros','Diferença')) +
+  tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Homicídio por AF em 10 anos (2003 e 2012)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador14_uf_taxa_homicidio_cor_af_2003_2012.csv')
