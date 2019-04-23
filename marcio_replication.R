@@ -627,3 +627,204 @@ write_excel_csv(ag_uf,'tabelas/meta161_indicador6_uf_cresc_acumulado_crimes_patr
 ##                      Mortes por Arma de Fogo                         ##
 ##                                                                      ##          
 ##########################################################################
+
+# Carregando dados
+d5 = read.csv('dados/indicador_7/obito_por_af_2002_2012.csv',
+              sep = ';', fileEncoding = 'latin1')
+
+d5 = gather(d5,ano,hom_af,2:12)
+
+d5$ano = as.numeric(substr(d5$ano,2,5))
+
+# Gráficos e Tabelas
+ag_uf = tapply(d5$hom_af, d5$uf, sum, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   hom_af = ag_uf)
+
+### Total Homicídio por AF em 10 anos
+png('graficos/meta161_indicador7_uf_total_homicidio_af_2002_2012.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -hom_af), y = hom_af)) +
+  labs(y = 'Homicídio por AF total', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Homicídio por AF em 10 anos (2002 à 2012)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador7_uf_total_homicidio_af_2002_2012.csv')
+
+## Total Homicídio por AF taxa
+var_uf = d5 %>% group_by(uf) %>%
+  mutate(lag.valor = dplyr::lag(hom_af, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (hom_af - lag.valor) / lag.valor
+}) 
+
+### Crescimento Acumulado por UF
+var_uf = data.frame(uf = levels(var_uf$uf),
+                    cresc.acum = tapply(var_uf$crescimento, 
+                                        var_uf$uf, sum, na.rm = T),
+                    sd.cresc = tapply(var_uf$crescimento, 
+                                      var_uf$uf, sd, na.rm = T))
+
+png('graficos/meta161_indicador1_uf_crescimento_acumulado_homicidio_af_taxa.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado (%) Homicídio por AF', x = 'UF') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) +
+  tema_massa()
+
+dev.off()
+
+tab_uf = var_uf
+
+colnames(tab_uf) = c('UF', 'Crescimento Acumulado Homicídio por AF (2002 à 2012)')
+write_excel_csv(tab_uf,'tabelas/meta161_indicador7_cres_acumulado_homicidio_af_2002_2012.csv')
+
+var_uf = tapply(var_uf$cresc.acum, var_uf$uf, sum, na.rm = T)
+var_uf  = sort(var_uf)
+
+### Maior tendência de crescimento 
+png('graficos/meta161_indicador7_uf_maior_crescimento_acumulado_homicidio_af_taxa.png')
+
+ggplot(d5[d5$uf %in% names(var_uf[22:27]),],
+       aes(x = ano, y = hom_af, colour = uf)) +
+  labs(colour = "UF", y = 'Homicídio por AF por 100 mil hab.', x = 'Ano') + 
+  geom_line() + tema_massa()
+
+dev.off()
+
+xx = d5[d5$uf %in% names(var_uf[22:27]),]
+xx = xx[2:4]
+xx = reshape(xx, idvar = 'uf',timevar = 'ano', direction = 'wide')
+
+xx = cbind('Taxa de Homicídio por AF por 100 mil habitantes',xx)
+
+colnames(xx) = c('uf','variável',as.character(2002:2012))
+
+write_excel_csv(xx,'tabelas/meta161_indicador7_maior_homicidio_af_2007_2017.csv')
+
+##########################################################################
+##                                                                      ##    
+##                  Número de Homicídio entre jovens                    ##
+##                                                                      ##          
+##########################################################################
+
+# Carregando dados
+d6j = read.csv('dados/indicador_8/THOMICMJ.1980-2015.csv',
+               sep = ';', fileEncoding = 'UTF-16')
+
+d6j = gather(d6j,ano,hom_jov,2:37)
+
+d6j$ano = as.numeric(substr(d6j$ano,2,5))
+
+d6m = read.csv('dados/indicador_8/THOMICMJ.1980-2015.csv',
+               sep = ';', fileEncoding = 'UTF-16')
+
+d6m = gather(d6m,ano,hom_mas,2:37)
+
+d6m$ano = as.numeric(substr(d6m$ano,2,5))
+
+d6f = read.csv('dados/indicador_8/THOMICFJ.1980-2015.csv',
+               sep = ';', fileEncoding = 'UTF-16')
+
+d6f = gather(d6f,ano,hom_fem,2:37)
+
+d6f$ano = as.numeric(substr(d6f$ano,2,5))
+
+d6 = merge(d6m,d6f, by = c('ano','uf'))
+d6 = merge(d6j,d6, by = c('ano','uf'))
+
+d6$ratio= d6$hom_mas / d6$hom_fem
+
+# Gráficos e Tabelas
+### Taxa de Homicídio da População Jovem
+ag_uf = tapply(d6$hom_jov, d6$uf, mean, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   hom_jov = ag_uf)
+
+png('graficos/meta161_indicador8_uf_taxa_homicidio_jovens_1980_2015.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -hom_jov), y = hom_jov)) +
+  labs(y = 'Razão Tx. Homicídio de Jovens', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Razão Tx. Homicídio de Jovens (1980 à 2015)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador8_uf_taxa_homicidio_jovens_1980_2015.csv')
+
+### Razão do Homicídio Masculino por Feminino 
+ag_uf = tapply(d6$ratio, d6$uf, mean, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   hom_ratio = ag_uf)
+
+png('graficos/meta161_indicador8_uf_razao_hom_jovens_sexos_1980_2015.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -hom_ratio), y = hom_ratio)) +
+  labs(y = 'Razão Tx. Homicídio (Jovens) entre Sexos', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Razão Tx. Homicídio (Jovens) entre Sexos (1980 à 2015)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador8_uf_razao_hom_jovens_sexos_1980_2015.csv')
+
+### Crescimento Acumulado por UF
+var_uf = d6 %>% group_by(uf) %>%
+  mutate(lag.valor = dplyr::lag(ratio, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (ratio - lag.valor) / lag.valor
+}) 
+
+var_uf = data.frame(uf = levels(var_uf$uf),
+                    cresc.acum = tapply(var_uf$crescimento, 
+                                        var_uf$uf, sum, na.rm = T),
+                    sd.cresc = tapply(var_uf$crescimento, 
+                                      var_uf$uf, sd, na.rm = T))
+
+png('graficos/meta161_indicador8_uf_crescimento_acumulado_razao_hom_jovens_sexos.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado (%) Razão Tx. Homicídio (Jovens) entre Sexos', x = 'UF') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) +
+  tema_massa()
+
+dev.off()
+
+tab_uf = var_uf
+
+colnames(tab_uf) = c('UF', 'Crescimento Acumulado da Razão Tx. Homicídio (Jovens) entre Sexos (1980 à 2015)')
+write_excel_csv(tab_uf,'tabelas/meta161_indicador8_cres_acumulado_razao_hom_jovens_sexos_1980_2015.csv')
+
+##########################################################################
+##                                                                      ##    
+##                  Número de Homicídios Dolosos                        ##
+##                                                                      ##          
+##########################################################################
+
+# parece já ter sido trabalhado no indicador 1
+
+##########################################################################
+##                                                                      ##    
+##            Número de Ocorrências Criminais Registradas               ##
+##                                                                      ##          
+##########################################################################
+
+# sem dados disponíveis
