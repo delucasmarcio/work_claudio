@@ -512,7 +512,7 @@ ggplot(ag_uf,
        aes(x = reorder(uf, -value), y = value)) +
   labs(y = 'Crimes Patrimoniais total', x = 'UF') +   
   geom_bar(aes(fill = variable), stat="identity") + 
-  lege(labels = c("Veículo", "Carga",'Outros')) +
+  scale_fill_discrete(labels = c("Veículo", "Carga",'Outros')) +
   tema_massa()
 
 dev.off()
@@ -556,7 +556,7 @@ colnames(d44) = c('m3','var3','uf','ano','v3')
 d4 = merge(d42,d43, by = c('ano','uf'))
 d4 = merge(d4,d44, by = c('ano','uf'))
 
-## Crimes Sexuais taxa
+## Crimes Contra Patrimônio taxa
 var_uf = d4 %>% group_by(uf) %>%
   mutate(lag.instituicao = dplyr::lag(v1, n = 1, default = NA)) %>%
   mutate(lag.pessoa = dplyr::lag(v2, n = 1, default = NA)) %>%
@@ -574,7 +574,7 @@ var_uf$cresc.veiculo = with(var_uf,{
   (v3 - lag.veiculo) / lag.veiculo
 }) 
 
-### Crescimento Acumulado Crimes Sexuais por UF
+### Crescimento Acumulado Crimes contra Patrimônio por UF
 var_uf = data.frame(uf = levels(var_uf$uf),
                     ca.inst = tapply(var_uf$cresc.inst, 
                                         var_uf$uf, sum, na.rm = T),
@@ -833,3 +833,185 @@ write_excel_csv(tab_uf,'tabelas/meta161_indicador8_cres_acumulado_razao_hom_jove
 ##                    Número de Óbitos de Policiais                     ##
 ##                                                                      ##          
 ##########################################################################
+
+# Carregando dados
+d71 = read.csv('dados/indicador_11/mortes_policiais_servico_2010_2015_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d71) = c('m1','var1','uf','ano','v1')
+
+d72 = read.csv('dados/indicador_11/mortes_policiais_fora_servico_2010_2015_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d72) = c('m2','var2','uf','ano','v2')
+
+# Concatenando dados
+d7 = merge(d71,d72, by = c('ano','uf'))
+
+d7$morte_policia = d7$v1 + d7$v2
+
+# Gráficos e tabelas
+ag_uf = tapply(d7$morte_policia, d7$uf, sum, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   morte_policia = ag_uf)
+
+png('graficos/meta161_indicador11_uf_morte_policiais_2010_2015.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -morte_policia), y = morte_policia)) +
+  labs(y = 'Morte de Policiais total (2010 à 2015)', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Mortes de Policiais (2010 à 2015)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador11_uf_morte_policiais_2010_2015.csv')
+
+### Crescimento Acumulado por UF
+var_uf = d7 %>% group_by(uf) %>%
+  mutate(lag.valor = dplyr::lag(morte_policia, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (morte_policia - lag.valor) / lag.valor
+}) 
+
+var_uf = data.frame(uf = levels(var_uf$uf),
+                    cresc.acum = tapply(var_uf$crescimento, 
+                                        var_uf$uf, sum, na.rm = T),
+                    sd.cresc = tapply(var_uf$crescimento, 
+                                      var_uf$uf, sd, na.rm = T))
+
+var_uf[var_uf == max(var_uf$cresc.acum)] <- NA 
+
+png('graficos/meta161_indicador11_uf_crescimento_acumulado_morte_policiais_2010_2015.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado (%) Mortes de Policiais (2010 à 2015)', x = 'UF') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) +
+  tema_massa()
+
+dev.off()
+
+tab_uf = var_uf
+
+colnames(tab_uf) = c('UF', 'Crescimento Acumulado das Mortes de Policiais (2010 à 2015)')
+write_excel_csv(tab_uf,'tabelas/meta161_indicador11_cres_acumulado_morte_policiais_2010_2015.csv')
+
+##########################################################################
+##                                                                      ##    
+##                  Número de Denúncias do Disque 180                   ##
+##                                                                      ##          
+##########################################################################
+
+# sem dados disponíveis
+
+##########################################################################
+##                                                                      ##    
+##                    Número de Pessoas Desaparecidas                   ##
+##                                                                      ##          
+##########################################################################
+
+# sem dados disponíveis
+
+##########################################################################
+##                                                                      ##    
+##                Óbitos de Jovens por Arma de Fogo                     ##
+##                                                                      ##          
+##########################################################################
+
+# Carregando dados
+d8_cap = read.csv('dados/indicador_14/homicidio_af_jovem_capitais_2002_2012_fbsp.csv',
+                  sep = ';',fileEncoding = 'Latin1')
+
+d8_cap = gather(d8_cap, ano, af_jovem, 2:12)
+
+d8_cap$ano = as.numeric(substr(d8_cap$ano,2,5))
+
+d8_uf = read.csv('dados/indicador_14/homicidio_af_jovem_ufs_2002_2012_fbsp.csv',
+                  sep = ';',fileEncoding = 'Latin1')
+
+d8_uf = gather(d8_uf, ano, af_jovem, 2:3)
+
+d8_uf$ano = as.numeric(substr(d8_uf$ano,2,5))
+
+# Gráficos e tabelas
+## Capitais
+ag_cp = tapply(d8_cap$af_jovem, d8_cap$capital, mean, na.rm = T)
+ag_cp = sort(ag_cp)
+ag_cp = data.frame(capital = names(ag_cp),
+                   hom_af = ag_cp)
+
+### Média taxa Homicídio por AF na população jovem 10 anos
+png('graficos/meta161_indicador14_capital_homicidio_jovem_af_2002_2012.png')
+
+ggplot(ag_cp,
+       aes(x = reorder(capital, -hom_af), y = hom_af)) +
+  labs(y = 'Média Homicídio por AF (Jovem)', x = 'Capital') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + 
+  coord_flip(expand = F) +
+  tema_massa()
+
+dev.off()
+
+colnames(ag_cp) = c('Capital', 'Total de Homicídio por AF (Jovem) em 10 anos (2002 à 2012)')
+write_excel_csv(ag_cp,'tabelas/meta161_indicador14_capital_total_homicidio_jovem_af_2002_2012.csv')
+
+### Total Homicídio de Jovens por AF taxa
+var_cap = d8_cap %>% group_by(capital) %>%
+  mutate(lag.valor = dplyr::lag(af_jovem, n = 1, default = NA))
+
+var_cap$crescimento = with(var_cap,{
+  (af_jovem - lag.valor) / lag.valor
+}) 
+
+### Crescimento Acumulado por UF
+var_cap = data.frame(capital = levels(var_cap$capital),
+                    cresc.acum = tapply(var_cap$crescimento, 
+                                        var_cap$capital, sum, na.rm = T),
+                    sd.cresc = tapply(var_cap$crescimento, 
+                                      var_cap$capital, sd, na.rm = T))
+
+png('graficos/meta161_indicador1_capital_crescimento_acumulado_homicidio_jovem_af_taxa.png')
+
+ggplot(var_cap,
+       aes(x = reorder(capital, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado (%) Homicídio (Jovem) por AF', x = 'Capital') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) + 
+  coord_flip(expand = F) +
+  tema_massa()
+
+dev.off()
+
+tab_uf = var_cap
+
+colnames(tab_uf) = c('Capital', 'Crescimento Acumulado Homicídio (Jovens) por AF (2002 à 2012)')
+write_excel_csv(tab_uf,'tabelas/meta161_indicador14_cres_acumulado_homicidio_jovem_af_2002_2012.csv')
+
+## UFs
+ag_uf = data.frame(uf = levels(d8_uf$uf),
+                   hom_2012 = d8_uf$af_jovem[d8_uf$ano == 2012],
+                   hom_2002 = d8_uf$af_jovem[d8_uf$ano == 2002])
+
+ag_uf = melt(ag_uf,id.vars = 'uf')
+
+png('graficos/meta161_indicador14_uf_taxa_homicidio_jovem_af_2002_2012.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, - value), y = value)) +
+  labs(y = 'Média Homicídio por AF (Jovem)', x = 'UF') +   
+  geom_bar(aes(fill = variable), stat="identity") + 
+  scale_fill_discrete(labels = c("2012",'2002')) +
+  tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Homicídio por AF (Jovem) em 10 anos (2002 e 2012)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador14_uf_total_homicidio_jovem_af_2002_2012.csv')
