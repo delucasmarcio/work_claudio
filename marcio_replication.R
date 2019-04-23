@@ -54,41 +54,213 @@ tema_massa <- function(base_size = 12, base_family = "") {
           plot.background = element_blank())
 }
 
-# meta161_indicador1 : "Crimes violentos letais intencionais"
-d1 = read.csv('dados/d1/cvli_2007_2017.csv',
+##########################################################################
+##                                                                      ##    
+##               Crimes violentos letais intencionais                   ##
+##                                                                      ##          
+##########################################################################
+
+# Carregando dados
+d1 = read.csv('dados/indicador_1/cvli_2007_2017.csv',
               sep = ',',fileEncoding = 'UTF-8')
 
-## Ordenando por Ano
+# Ordenando por Ano
 d1 = d1[order(d1$Year.of.Ano..data.),]
 
-## Renonando variáveis
+# Renonando variáveis
 colnames(d1) = c('variavel','uf','ano','valor')
 
-## Eliminando dados agregados por Brasil
+# Eliminando dados agregados por Brasil
 d1 = d1[d1$uf != 'Brasil',]
+d1$uf = droplevels(d1$uf)
 
-## Número Absoluto de CVLI
+# Número Absoluto de CVLI
 n_cvli = d1[d1$variavel == 'Números absolutos',]
 
-## Taxa de CVLI
+# Taxa de CVLI
 tx_cvli = d1[d1$variavel == 'Taxa / 100 mil habitantes',]
 
-## Gráficos
-### Selecionando apenas UFs em que mudança > |10%|
-var_uf = n_cvli$valor[n_cvli$ano == 2007]
-var_uf = (n_cvli$valor[n_cvli$ano == 2017] - var_uf) / 
-  var_uf
-names(var_uf) = n_cvli$uf[n_cvli$ano == 2007]
+# Gráficos e Tabelas
+## CVLI absoluto
+ag_uf = tapply(n_cvli$valor, n_cvli$uf, sum, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   cvli = ag_uf)
 
-  
-ggplot(n_cvli[n_cvli$uf %in% names(var_uf[var_uf > 3]),],
+### Total CVLI em 10 anos
+png('graficos/meta161_indicador1_uf_total_cvli_2007_2017.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -cvli), y = cvli)) +
+  labs(y = 'CVLI total', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de CVli em 10 anos (2007 à 2017)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador1_uf_total_cvli_2007_2017.csv')
+
+
+## CVLI taxa
+var_uf = tx_cvli %>% group_by(uf) %>%
+  mutate(lag.valor = dplyr::lag(valor, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (valor - lag.valor) / lag.valor
+}) 
+
+var_uf = tapply(var_uf$crescimento, var_uf$uf, sum, na.rm = T)
+var_uf  = sort(var_uf)
+
+### Maior tendência de redução 
+png('graficos/meta161_indicador1_uf_menor_crescimento_acumulado_cvli_taxa.png')
+
+ggplot(tx_cvli[tx_cvli$uf %in% names(var_uf[1:5]),],
        aes(x = ano, y = valor, colour = uf)) +
-  labs(colour = "UF", y = 'CVLI total', x = 'Ano') + 
+  labs(colour = "UF", y = 'CVLI por 100 mil hab.', x = 'Ano') + 
   geom_line() + tema_massa()
 
-# meta161_indicador2
+dev.off()
 
+xx = tx_cvli[tx_cvli$uf %in% names(var_uf[1:5]),]
+xx = xx[2:4]
+xx = reshape(xx, idvar = 'uf',timevar = 'ano', direction = 'wide')
 
+xx = cbind('Taxa de CVLI por 100 mil habitantes',xx)
 
-n_cvli = reshape(n_cvli, idvar = 'uf', 
-                 timevar = 'ano', direction = "wide")
+colnames(xx) = c('uf','variável',as.character(2007:2017))
+
+write_excel_csv(xx,'tabelas/meta161_indicador1_cvli_top_rank_2007_2017.csv')
+
+### Maior tendência de crescimento 
+png('graficos/meta161_indicador1_uf_maior_crescimento_acumulado_cvli_taxa.png')
+
+ggplot(tx_cvli[tx_cvli$uf %in% names(var_uf[22:27]),],
+       aes(x = ano, y = valor, colour = uf)) +
+  labs(colour = "UF", y = 'CVLI por 100 mil hab.', x = 'Ano') + 
+  geom_line() + tema_massa()
+
+dev.off()
+
+xx = tx_cvli[tx_cvli$uf %in% names(var_uf[22:27]),]
+xx = xx[2:4]
+xx = reshape(xx, idvar = 'uf',timevar = 'ano', direction = 'wide')
+
+xx = cbind('Taxa de CVLI por 100 mil habitantes',xx)
+
+colnames(xx) = c('uf','variável',as.character(2007:2017))
+
+write_excel_csv(xx,'tabelas/meta161_indicador1_cvli_botton_rank_2007_2017.csv')
+
+### Crescimento Acumulado por UF
+var_uf = data.frame(uf = names(var_uf),
+                    cresc.acum = var_uf,
+                    sd.cresc = )
+
+colnames(var_uf) = c('UF', 'Crescimento Acumulado (2007 à 2017)')
+write_excel_csv(var_uf,'tabelas/meta161_indicador1_cres_acumulado_cvli_2007_2017.csv')
+
+##########################################################################
+##                                                                      ##    
+##                    Taxa de mortes por agressão                       ##
+##                                                                      ##          
+##########################################################################
+
+# faltam dados
+
+##########################################################################
+##                                                                      ##    
+##                        Taxa de outros letais                         ##
+##                                                                      ##          
+##########################################################################
+
+# Carregando dados
+d21 = read.csv('dados/indicador_3/hom_culposo_transito_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d21) = c('m1','var1','uf','ano','v1')
+
+d22 = read.csv('dados/indicador_3/morte_acidentais_transito_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d22) = c('m2','var2','uf','ano','v2')
+
+d23 = read.csv('dados/indicador_3/mortes_esclarecer_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d23) = c('m3','var3','uf','ano','v3')
+
+d24 = read.csv('dados/indicador_3/outras_acidentais_transito_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d24) = c('m4','var4','uf','ano','v4')
+
+d25 = read.csv('dados/indicador_3/outros_hom_culposos_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d25) = c('m5','var5','uf','ano','v5')
+
+d26 = read.csv('dados/indicador_3/outros_resultantes_mortes_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d26) = c('m6','var6','uf','ano','v6')
+
+d27 = read.csv('dados/indicador_3/suicidio_fbsp.csv',
+               sep = ',', fileEncoding = 'UTF-8')
+
+colnames(d27) = c('m7','var7','uf','ano','v7')
+
+# Concatenando dados
+d2 = merge(d21,d22, by = c('uf','ano'))
+d2 = merge(d2,d23, by = c('uf','ano'))
+d2 = merge(d2,d24, by = c('uf','ano'))
+d2 = merge(d2,d25, by = c('uf','ano'))
+d2 = merge(d2,d26, by = c('uf','ano'))
+d2 = merge(d2,d27, by = c('uf','ano'))
+
+d2$tx_letais = 0
+
+for(v in paste0('v',1:7)){
+  
+  d2$tx_letais = d2$tx_letais + d2[v]
+}
+
+d2$tx_letais = d2$tx_letais$v1
+
+d2 = d2[c('ano','uf','tx_letais')]
+
+d2 = d2[d2$uf != 'Brasil',]
+
+d2$uf = droplevels(d2$uf)
+
+## Taxa de outros letais
+var_uf = d2 %>% group_by(uf) %>%
+  mutate(lag.tx = dplyr::lag(tx_letais, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (tx_letais - lag.tx) / lag.tx
+}) 
+
+### Crescimento Acumulado por UF
+var_uf = data.frame(uf = levels(var_uf$uf),
+                    cresc.acum = tapply(var_uf$crescimento, 
+                                        var_uf$uf, sum, na.rm = T),
+                    sd.cresc = tapply(var_uf$crescimento, 
+                                      var_uf$uf, sd, na.rm = T))
+
+png('graficos/meta161_indicador3_uf_crescimento_acumulado_outros_letais_taxa.png')
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado Outros Letais', x = 'UF') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) +
+  tema_massa()
+
+dev.off()
+
+colnames(var_uf) = c('UF', 'Crescimento Acumulado (2007 à 2017)')
+write_excel_csv(var_uf,'tabelas/meta161_indicador3_cres_acumulado_outros_letais_2007_2015.csv')
+
