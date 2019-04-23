@@ -263,7 +263,7 @@ var_uf$crescimento = with(var_uf,{
   (tx_letais - lag.tx) / lag.tx
 }) 
 
-### Crescimento Acumulado por UF
+### Crescimento Acumulado outros letais por UF
 var_uf = data.frame(uf = levels(var_uf$uf),
                     cresc.acum = tapply(var_uf$crescimento, 
                                         var_uf$uf, sum, na.rm = T),
@@ -288,6 +288,24 @@ tab_uf = var_uf
 colnames(tab_uf) = c('UF', 'Crescimento Acumulado (%) Outros Letais (2007 à 2015)')
 write_excel_csv(tab_uf,'tabelas/meta161_indicador3_cres_acumulado_outros_letais_2007_2015.csv')
 
+### Média de Outros Letais ao longo de 2007 à 2015
+ag_uf = tapply(d2$tx_letais, d2$uf, mean, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   tx_letais = ag_uf)
+
+png('graficos/meta161_indicador3_uf_media_outros_letais_2007_2015.png')
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -tx_letais), y = tx_letais)) +
+  labs(y = 'Média Outros Letais por 100 mil hab.', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Média da Taxa Outros Letais por 100 mil hab. (2007 à 2015)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador3_uf_media_outros_letais_2007_2015.csv')
+
 ## Taxa Suicídio
 var_uf = d27 %>% group_by(uf) %>%
   mutate(lag.suic = dplyr::lag(v7, n = 1, default = NA))
@@ -296,7 +314,7 @@ var_uf$crescimento = with(var_uf,{
   (v7 - lag.suic) / lag.suic
 }) 
 
-### Crescimento Acumulado por UF
+### Crescimento Acumulado Suicídio por UF
 var_uf = data.frame(uf = levels(var_uf$uf),
                     cresc.acum = tapply(var_uf$crescimento, 
                                         var_uf$uf, sum, na.rm = T),
@@ -338,24 +356,6 @@ dev.off()
 
 colnames(ag_uf) = c('UF', 'Média da Taxa Suicídio por 100 mil hab. (2007 à 2015)')
 write_excel_csv(ag_uf,'tabelas/meta161_indicador3_uf_media_suicidio_2007_2015.csv')
-
-### Média de Outros Letais ao longo de 2007 à 2015
-ag_uf = tapply(d2$tx_letais, d2$uf, mean, na.rm = T)
-ag_uf = sort(ag_uf)
-ag_uf = data.frame(uf = names(ag_uf),
-                   tx_letais = ag_uf)
-
-png('graficos/meta161_indicador3_uf_media_outros_letais_2007_2015.png')
-
-ggplot(ag_uf,
-       aes(x = reorder(uf, -tx_letais), y = tx_letais)) +
-  labs(y = 'Média Outros Letais por 100 mil hab.', x = 'UF') + 
-  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
-
-dev.off()
-
-colnames(ag_uf) = c('UF', 'Média da Taxa Outros Letais por 100 mil hab. (2007 à 2015)')
-write_excel_csv(ag_uf,'tabelas/meta161_indicador3_uf_media_outros_letais_2007_2015.csv')
 
 ### Média de 'Não esclarecidos' ao longo de 2007 à 2015
 ag_uf = tapply(d23$v3, d23$uf, mean, na.rm = T)
@@ -443,7 +443,7 @@ var_uf$crescimento = with(var_uf,{
   (tx.crime_sexual - lag.crime.sex) / lag.crime.sex
 }) 
 
-### Crescimento Acumulado por UF
+### Crescimento Acumulado Crimes Sexuais por UF
 var_uf = data.frame(uf = levels(var_uf$uf),
                     cresc.acum = tapply(var_uf$crescimento, 
                                         var_uf$uf, sum, na.rm = T),
