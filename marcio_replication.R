@@ -89,7 +89,8 @@ ag_uf = data.frame(uf = names(ag_uf),
                    cvli = ag_uf)
 
 ### Total CVLI em 10 anos
-png('graficos/meta161_indicador1_uf_total_cvli_2007_2017.png')
+png('graficos/meta161_indicador1_uf_total_cvli_2007_2017.png',
+    width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -cvli), y = cvli)) +
@@ -117,7 +118,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
                     sd.cresc = tapply(var_uf$crescimento, 
                                       var_uf$uf, sd, na.rm = T))
 
-png('graficos/meta161_indicador1_uf_crescimento_acumulado_cvli_taxa.png')
+png('graficos/meta161_indicador1_uf_crescimento_acumulado_cvli_taxa.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -139,7 +140,7 @@ var_uf = tapply(var_uf$cresc.acum, var_uf$uf, sum, na.rm = T)
 var_uf  = sort(var_uf)
 
 ### Maior tendência de redução 
-png('graficos/meta161_indicador1_uf_menor_crescimento_acumulado_cvli_taxa.png')
+png('graficos/meta161_indicador1_uf_menor_crescimento_acumulado_cvli_taxa.png', width = 900)
 
 ggplot(tx_cvli[tx_cvli$uf %in% names(var_uf[1:5]),],
        aes(x = ano, y = valor, colour = uf)) +
@@ -159,7 +160,7 @@ colnames(xx) = c('uf','variável',as.character(2007:2017))
 write_excel_csv(xx,'tabelas/meta161_indicador1_cvli_top_rank_2007_2017.csv')
 
 ### Maior tendência de crescimento 
-png('graficos/meta161_indicador1_uf_maior_crescimento_acumulado_cvli_taxa.png')
+png('graficos/meta161_indicador1_uf_maior_crescimento_acumulado_cvli_taxa.png', width = 900)
 
 ggplot(tx_cvli[tx_cvli$uf %in% names(var_uf[22:27]),],
        aes(x = ano, y = valor, colour = uf)) +
@@ -271,7 +272,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
                     sd.cresc = tapply(var_uf$crescimento, 
                                       var_uf$uf, sd, na.rm = T))
 
-png('graficos/meta161_indicador3_uf_crescimento_acumulado_outros_letais_taxa.png')
+png('graficos/meta161_indicador3_uf_crescimento_acumulado_outros_letais_taxa.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -295,7 +296,7 @@ ag_uf = sort(ag_uf)
 ag_uf = data.frame(uf = names(ag_uf),
                    tx_letais = ag_uf)
 
-png('graficos/meta161_indicador3_uf_media_outros_letais_2007_2015.png')
+png('graficos/meta161_indicador3_uf_media_outros_letais_2007_2015.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -tx_letais), y = tx_letais)) +
@@ -322,7 +323,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
                     sd.cresc = tapply(var_uf$crescimento, 
                                       var_uf$uf, sd, na.rm = T))
 
-png('graficos/meta161_indicador3_uf_crescimento_acumulado_suicidio_taxa.png')
+png('graficos/meta161_indicador3_uf_crescimento_acumulado_suicidio_taxa.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -346,7 +347,7 @@ ag_uf = sort(ag_uf)
 ag_uf = data.frame(uf = names(ag_uf),
                    tx_letais = ag_uf)
 
-png('graficos/meta161_indicador3_uf_media_suicidio_2007_2015.png')
+png('graficos/meta161_indicador3_uf_media_suicidio_2007_2015.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -tx_letais), y = tx_letais)) +
@@ -364,7 +365,7 @@ ag_uf = sort(ag_uf)
 ag_uf = data.frame(uf = names(ag_uf),
                    n_escl = ag_uf)
 
-png('graficos/meta161_indicador3_uf_media_nao_esclarecidos_2007_2015.png')
+png('graficos/meta161_indicador3_uf_media_nao_esclarecidos_2007_2015.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -n_escl), y = n_escl)) +
@@ -424,7 +425,7 @@ ag_uf = data.frame(uf = names(ag_uf),
                    crime.sex = ag_uf)
 
 ### Total CVLI em 10 anos
-png('graficos/meta161_indicador4_uf_total_crimes_sexuais_2009_2017.png')
+png('graficos/meta161_indicador4_uf_total_crimes_sexuais_2009_2017.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -crime.sex), y = crime.sex)) +
@@ -451,7 +452,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
                     sd.cresc = tapply(var_uf$crescimento, 
                                       var_uf$uf, sd, na.rm = T))
 
-png('graficos/meta161_indicador4_uf_crescimento_acumulado_crimes_sexuais_taxa.png')
+png('graficos/meta161_indicador4_uf_crescimento_acumulado_crimes_sexuais_taxa.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -506,13 +507,13 @@ ag_uf = data.frame(uf = levels(d41$uf),
 ag_uf = melt(ag_uf, id.var = 'uf')
 
 ## Gráficos e Tabelas
-png('graficos/meta161_indicador6_uf_total_crimes_patrimoniais_2007_2016.png')
+png('graficos/meta161_indicador6_uf_total_crimes_patrimoniais_2007_2016.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -value), y = value)) +
   labs(y = 'Crimes Patrimoniais total', x = 'UF') +   
   geom_bar(aes(fill = variable), stat="identity") + 
-  scale_fill_discrete(labels = c("Veículo", "Carga",'Outros')) +
+  scale_fill_discrete(name = 'Legenda', labels = c("Veículo", "Carga",'Outros')) +
   tema_massa()
 
 dev.off()
@@ -524,7 +525,7 @@ ag_uf = data.frame(uf = levels(d41$uf),
                    instituicao = with(d41[d41$variavel == 'Roubo a instituição financeira',],
                                       {tapply(valor, uf, sum, na.rm = T)}))
 
-png('graficos/meta161_indicador6_uf_total_roubo_instituicao_2007_2016.png')
+png('graficos/meta161_indicador6_uf_total_roubo_instituicao_2007_2016.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -instituicao), y = instituicao)) +
@@ -588,7 +589,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
 var_uf[var_uf == Inf] <- NA
 
 ## Gráficos e Tabelas
-png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_instituicao_2007_2016.png')
+png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_instituicao_2007_2016.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -ca.inst), y = ca.inst)) +
@@ -597,7 +598,7 @@ ggplot(var_uf,
 
 dev.off()
 
-png('graficos/meta161_indicador6_uf_crescimento_acumulado_outros_roubos_2007_2016.png')
+png('graficos/meta161_indicador6_uf_crescimento_acumulado_outros_roubos_2007_2016.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -ca.pessoa), y = ca.pessoa)) +
@@ -606,7 +607,7 @@ ggplot(var_uf,
 
 dev.off()
 
-png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_veiculo_2007_2016.png')
+png('graficos/meta161_indicador6_uf_crescimento_acumulado_roubo_veiculo_2007_2016.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -ca.veiculo), y = ca.veiculo)) +
@@ -643,7 +644,7 @@ ag_uf = data.frame(uf = names(ag_uf),
                    hom_af = ag_uf)
 
 ### Total Homicídio por AF em 10 anos
-png('graficos/meta161_indicador7_uf_total_homicidio_af_2002_2012.png')
+png('graficos/meta161_indicador7_uf_total_homicidio_af_2002_2012.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -hom_af), y = hom_af)) +
@@ -670,7 +671,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
                     sd.cresc = tapply(var_uf$crescimento, 
                                       var_uf$uf, sd, na.rm = T))
 
-png('graficos/meta161_indicador1_uf_crescimento_acumulado_homicidio_af_taxa.png')
+png('graficos/meta161_indicador1_uf_crescimento_acumulado_homicidio_af_taxa.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -692,7 +693,7 @@ var_uf = tapply(var_uf$cresc.acum, var_uf$uf, sum, na.rm = T)
 var_uf  = sort(var_uf)
 
 ### Maior tendência de crescimento 
-png('graficos/meta161_indicador7_uf_maior_crescimento_acumulado_homicidio_af_taxa.png')
+png('graficos/meta161_indicador7_uf_maior_crescimento_acumulado_homicidio_af_taxa.png', width = 900)
 
 ggplot(d5[d5$uf %in% names(var_uf[22:27]),],
        aes(x = ano, y = hom_af, colour = uf)) +
@@ -750,7 +751,7 @@ ag_uf = sort(ag_uf)
 ag_uf = data.frame(uf = names(ag_uf),
                    hom_jov = ag_uf)
 
-png('graficos/meta161_indicador8_uf_taxa_homicidio_jovens_1980_2015.png')
+png('graficos/meta161_indicador8_uf_taxa_homicidio_jovens_1980_2015.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -hom_jov), y = hom_jov)) +
@@ -768,7 +769,7 @@ ag_uf = sort(ag_uf)
 ag_uf = data.frame(uf = names(ag_uf),
                    hom_ratio = ag_uf)
 
-png('graficos/meta161_indicador8_uf_razao_hom_jovens_sexos_1980_2015.png')
+png('graficos/meta161_indicador8_uf_razao_hom_jovens_sexos_1980_2015.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -hom_ratio), y = hom_ratio)) +
@@ -794,7 +795,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
                     sd.cresc = tapply(var_uf$crescimento, 
                                       var_uf$uf, sd, na.rm = T))
 
-png('graficos/meta161_indicador8_uf_crescimento_acumulado_razao_hom_jovens_sexos.png')
+png('graficos/meta161_indicador8_uf_crescimento_acumulado_razao_hom_jovens_sexos.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -856,7 +857,7 @@ ag_uf = sort(ag_uf)
 ag_uf = data.frame(uf = names(ag_uf),
                    morte_policia = ag_uf)
 
-png('graficos/meta161_indicador11_uf_morte_policiais_2010_2015.png')
+png('graficos/meta161_indicador11_uf_morte_policiais_2010_2015.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, -morte_policia), y = morte_policia)) +
@@ -884,7 +885,7 @@ var_uf = data.frame(uf = levels(var_uf$uf),
 
 var_uf[var_uf == max(var_uf$cresc.acum)] <- NA 
 
-png('graficos/meta161_indicador11_uf_crescimento_acumulado_morte_policiais_2010_2015.png')
+png('graficos/meta161_indicador11_uf_crescimento_acumulado_morte_policiais_2010_2015.png', width = 900)
 
 ggplot(var_uf,
        aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
@@ -947,7 +948,8 @@ ag_cp = data.frame(capital = names(ag_cp),
                    hom_af = ag_cp)
 
 ### Média taxa Homicídio por AF na população jovem 10 anos
-png('graficos/meta161_indicador14_capital_homicidio_jovem_af_2002_2012.png')
+png('graficos/meta161_indicador14_capital_homicidio_jovem_af_2002_2012.png', 
+    height = 800, width = 700)
 
 ggplot(ag_cp,
        aes(x = reorder(capital, -hom_af), y = hom_af)) +
@@ -976,7 +978,8 @@ var_cap = data.frame(capital = levels(var_cap$capital),
                     sd.cresc = tapply(var_cap$crescimento, 
                                       var_cap$capital, sd, na.rm = T))
 
-png('graficos/meta161_indicador1_capital_crescimento_acumulado_homicidio_jovem_af_taxa.png')
+png('graficos/meta161_indicador1_capital_crescimento_acumulado_homicidio_jovem_af_taxa.png', 
+    height = 800, width = 700)
 
 ggplot(var_cap,
        aes(x = reorder(capital, -cresc.acum), y = cresc.acum)) +
@@ -1004,7 +1007,7 @@ ag_uf$ratio = ag_uf$hom_2012 - ag_uf$hom_2002
 
 ag_uf = melt(ag_uf,id.vars = 'uf')
 
-png('graficos/meta161_indicador14_uf_taxa_homicidio_jovem_af_2002_2012.png')
+png('graficos/meta161_indicador14_uf_taxa_homicidio_jovem_af_2002_2012.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, - value), y = value)) +
@@ -1053,7 +1056,7 @@ ag_uf$ratio = ag_uf$hom_negro - ag_uf$hom_branco
 
 ag_uf = melt(ag_uf,id.vars = 'uf')
 
-png('graficos/meta161_indicador17_uf_taxa_homicidio_cor_af_2003_2012_ver1.png')
+png('graficos/meta161_indicador17_uf_taxa_homicidio_cor_af_2003_2012_ver1.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, - value), y = value)) +
@@ -1064,13 +1067,13 @@ ggplot(ag_uf,
 
 dev.off()
 
-png('graficos/meta161_indicador17_uf_taxa_homicidio_cor_af_2003_2012_ver2.png')
+png('graficos/meta161_indicador17_uf_taxa_homicidio_cor_af_2003_2012_ver2.png', width = 900)
 
 ggplot(ag_uf,
        aes(x = reorder(uf, - value), y = value)) +
   labs(y = 'Média Homicídio por AF', x = 'UF') +   
   geom_bar(aes(fill = variable), stat="identity") + 
-  scale_fill_discrete(labels = c("Brancos",'Negros','Diferença')) +
+  scale_fill_discrete(name = "Legenda",labels = c("Brancos",'Negros','Diferença')) +
   tema_massa()
 
 dev.off()
