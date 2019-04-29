@@ -952,6 +952,66 @@ dt$uf = row.names(dt)
 
 dt = gather(dt,ano,total_ocorrencias, 1:7)
 
+dt = dt[dt$ano > 2014,]
+
+# Ajustando UF
+dt$uf = as.factor(dt$uf)
+levels(dt$uf) = c('AC','AL','AP','AM','BA','CE','DF','ES','GO','MA',
+                  'MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN',
+                  'RS','RO','RR','SC','SP','SE','TO')
+
+# Gráficos e tabelas
+ag_uf = tapply(dt$total_ocorrencias, dt$uf, sum, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   total_ocorrencias = ag_uf)
+
+png('graficos/meta161_indicador10_uf_total_ocorrencias_2015_2018.png', width = 900)
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -total_ocorrencias), y = total_ocorrencias)) +
+  labs(y = 'Ocorrências total (2015 à 2018)', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Total de Ocorrências (2015 à 2018)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador10_uf_total_ocorrencias_2015_2018.csv')
+
+### Crescimento Acumulado por UF
+var_uf = dt %>% group_by(uf) %>%
+  mutate(lag.valor = dplyr::lag(total_ocorrencias, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (total_ocorrencias - lag.valor) / lag.valor
+}) 
+
+var_uf = data.frame(uf = levels(as.factor(var_uf$uf)),
+                    cresc.acum = tapply(var_uf$crescimento, 
+                                        var_uf$uf, sum, na.rm = T),
+                    sd.cresc = tapply(var_uf$crescimento, 
+                                      var_uf$uf, sd, na.rm = T))
+
+var_uf[var_uf == max(var_uf$cresc.acum)] <- NA 
+
+png('graficos/meta161_indicador10_uf_crescimento_acumulado_ocorrencias_2015_2018.png', width = 900)
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado (%) Ocorrências (2015 à 2018)', x = 'UF') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) +
+  tema_massa()
+
+dev.off()
+
+tab_uf = var_uf
+
+colnames(tab_uf) = c('UF', 'Crescimento Acumulado das Ocorrências (2015 à 2018)')
+write_excel_csv(tab_uf,'tabelas/meta161_indicador10_cres_acumulado_ocorencias_2015_2018.csv')
+
 ##########################################################################
 ##                                                                      ##    
 ##                    Número de Óbitos de Policiais                     ##
