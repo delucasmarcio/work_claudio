@@ -18,6 +18,7 @@ library(tidyverse)
 library(ggplot2)
 library(ggthemes)
 library(reshape2)
+library(readxl)
 
 # Movendo para diretório de arquivos
 setwd('source')
@@ -476,7 +477,51 @@ write_excel_csv(tab_uf,'tabelas/meta161_indicador4_cres_acumulado_crimes_sexuais
 ##                                                                      ##          
 ##########################################################################
 
-# faltam dados
+# Carregando dados
+cinl = read.csv('dados/indicador_5/cinl_2016_2017_fbsp.csv',
+                sep = ';', fileEncoding = 'UTF-8')
+
+## Tentativa de Homicídio
+cinl$diff_hom = cinl$tent_hom_2017 - cinl$tent_hom_2016
+
+ag_uf = melt(cinl[c('tent_hom_2016',
+                    'tent_hom_2017',
+                    'diff_hom','uf')],id.vars = 'uf')
+
+png('graficos/meta161_indicador5_uf_taxa_tentativa_homicidio_2016_2017.png', width = 900)
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, - value), y = value)) +
+  labs(y = 'Taxa de Tentativa de Homicídio por 100 mil hab.', x = 'UF') +   
+  geom_bar(aes(fill = variable), position = 'dodge',stat="identity") + 
+  scale_fill_discrete(labels = c("2016",'2017','Diferença')) +
+  tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Taxa de Tentativa de Homicídio por 100 mil hab.. (2016 e 2017)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador5_uf_taxa_tentativa_homicidio_2016_2017.csv')
+
+## Lesão Corporal
+cinl$diff_lesao = cinl$lesao_2017 - cinl$lesao_2016
+
+ag_uf = melt(cinl[c('lesao_2016',
+                    'lesao_2017',
+                    'diff_lesao','uf')],id.vars = 'uf')
+
+png('graficos/meta161_indicador5_uf_taxa_lesao_corporal_2016_2017.png', width = 900)
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, - value), y = value)) +
+  labs(y = 'Taxa de Lesão Corporal por 100 mil hab.', x = 'UF') +   
+  geom_bar(aes(fill = variable), position = 'dodge',stat="identity") + 
+  scale_fill_discrete(labels = c("2016",'2017','Diferença')) +
+  tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Taxa de Lesão Corporal por 100 mil hab.. (2016 e 2017)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador5_uf_taxa_lesao_corporal_2016_2017.csv')
 
 ##########################################################################
 ##                                                                      ##    
@@ -819,7 +864,63 @@ write_excel_csv(tab_uf,'tabelas/meta161_indicador8_cres_acumulado_razao_hom_jove
 ##                                                                      ##          
 ##########################################################################
 
-# parece já ter sido trabalhado no indicador 1
+# Carregando dados
+ocor = read.csv('dados/indicador_9/taxa_homicidio_dolosos_2012_2015_fbsp.csv',
+                sep = ',', fileEncoding = 'UTF-8')
+
+# Gráficos e Tabelas
+## Média de Homicídios Dolosos
+ag_uf = tapply(ocor$Measure.Values, ocor$UF, mean, na.rm = T)
+ag_uf = sort(ag_uf)
+ag_uf = data.frame(uf = names(ag_uf),
+                   hom = ag_uf)
+
+png('graficos/meta161_indicador9_uf_media_taxa_homicidios_dolosos_2012_2015.png',
+    width = 900)
+
+ggplot(ag_uf,
+       aes(x = reorder(uf, -hom), y = hom)) +
+  labs(y = 'Média da Taxa de Homicídios Dolosos', x = 'UF') + 
+  geom_bar(stat = 'identity', fill = 'steelblue') + tema_massa()
+
+dev.off()
+
+colnames(ag_uf) = c('UF', 'Média da Taxa de Homicídios Dolosos (2012 à 2015)')
+write_excel_csv(ag_uf,'tabelas/meta161_indicador9_uf_media_taxa_homicidios_dolosos_2012_2015.csv')
+
+
+## Variação da taxa de homicídios dolosos
+var_uf = ocor %>% group_by(UF) %>%
+  mutate(lag.valor = dplyr::lag(Measure.Values, n = 1, default = NA))
+
+var_uf$crescimento = with(var_uf,{
+  (Measure.Values - lag.valor) / lag.valor
+}) 
+
+### Crescimento Acumulado por UF
+var_uf = data.frame(uf = levels(var_uf$UF),
+                    cresc.acum = tapply(var_uf$crescimento, 
+                                        var_uf$UF, sum, na.rm = T),
+                    sd.cresc = tapply(var_uf$crescimento, 
+                                      var_uf$UF, sd, na.rm = T))
+
+png('graficos/meta161_indicador9_uf_crescimento_acumulado_homicidio_doloso_taxa.png', width = 900)
+
+ggplot(var_uf,
+       aes(x = reorder(uf, -cresc.acum), y = cresc.acum)) +
+  labs(y = 'Crescimento acumulado (%) Homicídios Dolosos', x = 'UF') + 
+  geom_bar(stat = 'identity', position=position_dodge(), fill = 'steelblue') + 
+  geom_errorbar(aes(ymin = cresc.acum - sd.cresc, 
+                    ymax = cresc.acum + sd.cresc),
+                width = .2, position = position_dodge(.9)) +
+  tema_massa()
+
+dev.off()
+
+tab_uf = var_uf
+
+colnames(tab_uf) = c('UF', 'Crescimento Acumulado Homicídios Dolosos (2012 à 2015)')
+write_excel_csv(tab_uf,'tabelas/meta161_indicador9_cres_acumulado_homicidio_doloso_2012_2015.csv')
 
 ##########################################################################
 ##                                                                      ##    
@@ -827,7 +928,29 @@ write_excel_csv(tab_uf,'tabelas/meta161_indicador8_cres_acumulado_razao_hom_jove
 ##                                                                      ##          
 ##########################################################################
 
-# sem dados disponíveis
+# Diretório de arquivos
+fl = list.files('dados/indicador_10/')
+fl = paste0('dados/indicador_10/',fl)
+
+# Criando banco de dados
+a = read_excel(fl[1])
+
+for(arq in fl[2:27]){
+  an = read_excel(arq)
+  a = rbind(a,an)
+}
+
+a$ano = as.numeric(substr(a$`Mês/Ano`,4,8))
+colnames(a)[4] = 'valor'
+a$valor = as.numeric(a$valor)
+
+dt = tapply(a$valor,list(a$UF,a$ano), sum, na.rm = T)
+
+dt = as.data.frame(dt)
+
+dt$uf = row.names(dt)
+
+dt = gather(dt,ano,total_ocorrencias, 1:7)
 
 ##########################################################################
 ##                                                                      ##    
@@ -1080,3 +1203,4 @@ dev.off()
 
 colnames(ag_uf) = c('UF', 'Total de Homicídio por AF em 10 anos (2003 e 2012)')
 write_excel_csv(ag_uf,'tabelas/meta161_indicador14_uf_taxa_homicidio_cor_af_2003_2012.csv')
+
